@@ -1,0 +1,82 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "swe-bench_verified",
+  "dataset_size": 7771362,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/princeton-nlp/SWE-bench_Verified@a9e0332776d0c1d4fe6175cacf8cfcd4a988e540/data/test-00000-of-00001.parquet": {
+      "num_bytes": 2095978,
+      "checksum": null
+    }
+  },
+  "download_size": 2095978,
+  "features": {
+    "repo": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "instance_id": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "base_commit": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "patch": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "test_patch": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "problem_statement": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "hints_text": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "created_at": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "version": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "FAIL_TO_PASS": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "PASS_TO_PASS": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "environment_setup_commit": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 9867340,
+  "splits": {
+    "test": {
+      "name": "test",
+      "num_bytes": 7771362,
+      "num_examples": 500,
+      "dataset_name": "swe-bench_verified"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
