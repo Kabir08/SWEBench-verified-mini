@@ -1,37 +1,16 @@
-# %%
+from pathlib import Path
+import json
 import pandas as pd
 
-df = pd.read_csv("data/output.csv")
-print(df.columns)
-df.head()
-# %%
-
-df["IMAGE ID"] = df["IMAGE"].astype(str)
-df["CREATED"] = df["ID"].astype(str) + " " + df["CREATED"].astype(str) + " " + df["SIZE"].astype(str)
-df["SIZE"] = df["SHARED"].astype(str)
-df["SHARED SIZE"] = df["SIZE.1"].astype(str)
-df["UNIQUE SIZE"] = df["UNIQUE"].astype(str)
-df["CONTAINERS"] = df["SIZE.2"].astype(str)
-
-# Drop the redundant columns
-df = df.drop(columns=['IMAGE', 'ID', 'SHARED', 'SIZE.1', 'UNIQUE', 'SIZE.2'])
-
-# Reorder columns to match the expected format
-correct_order = ["REPOSITORY", "TAG", "IMAGE ID", "CREATED", "SIZE", "SHARED SIZE", "UNIQUE SIZE", "CONTAINERS"]
-df = df[correct_order]
-
-df["ID"] = df["REPOSITORY"].str.replace("sweb.eval.x86_64.", "", regex=False)
-
-# Convert sizes to GB
 def convert_to_gb(size_str: str) -> float:
     """
     Convert a size string (GB, MB, or kB) to GB float value.
     
-    Args:
-        size_str: String containing size with unit (e.g., "77.9MB", "2.58GB", "500kB")
+    Parameters:
+    - size_str: String containing size with unit (e.g., "77.9MB", "2.58GB", "500kB")
         
     Returns:
-        Size in GB as float
+    - Size in GB as float
     """
     size_str = size_str.strip()
     if 'GB' in size_str:
@@ -43,32 +22,79 @@ def convert_to_gb(size_str: str) -> float:
     else:
         return float(size_str)
 
-df["SIZE_IN_GB"] = df["SIZE"].apply(convert_to_gb)
+def process_docker_output(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Process the raw Docker output DataFrame to standardize column names and formats.
+    
+    Parameters:
+    - df: Raw DataFrame from Docker output
+    
+    Returns:
+    - Processed DataFrame with standardized columns
+    """
+    # Map columns to their new names
+    df["IMAGE ID"] = df["IMAGE"].astype(str)
+    df["CREATED"] = df["ID"].astype(str) + " " + df["CREATED"].astype(str) + " " + df["SIZE"].astype(str)
+    df["SIZE"] = df["SHARED"].astype(str)
+    df["SHARED SIZE"] = df["SIZE.1"].astype(str)
+    df["UNIQUE SIZE"] = df["UNIQUE"].astype(str)
+    df["CONTAINERS"] = df["SIZE.2"].astype(str)
 
-# %%
-# map to the environment
+    # Drop redundant columns
+    df = df.drop(columns=['IMAGE', 'ID', 'SHARED', 'SIZE.1', 'UNIQUE', 'SIZE.2'])
 
-import json
-from pathlib import Path
+    # Reorder columns
+    correct_order = ["REPOSITORY", "TAG", "IMAGE ID", "CREATED", "SIZE", 
+                    "SHARED SIZE", "UNIQUE SIZE", "CONTAINERS"]
+    df = df[correct_order]
 
-# Load the JSON file
-json_path = Path("data/instance_to_env.json")
-with json_path.open("r") as file:
-    instance_to_env = json.load(file)
+    # Extract ID from repository name
+    df["ID"] = df["REPOSITORY"].str.replace("sweb.eval.x86_64.", "", regex=False)
 
-# Map the ID to the environment using the instance_to_env dictionary
-df["ENVIRONMENT"] = df["ID"].map(instance_to_env)
+    # Add size in GB column
+    df["SIZE_IN_GB"] = df["SIZE"].apply(convert_to_gb)
 
+    return df
 
-# %%
-# Reset the index
-df = df.reset_index(drop=True)
+def map_environments(df: pd.DataFrame, mapping_path: Path) -> pd.DataFrame:
+    """
+    Map Docker image IDs to their environments using a JSON mapping file.
+    
+    Parameters:
+    - df: DataFrame containing Docker image information
+    - mapping_path: Path to the JSON file containing instance to environment mapping
+    
+    Returns:
+    - DataFrame with added environment mapping
+    """
+    with mapping_path.open("r") as file:
+        instance_to_env = json.load(file)
 
-print("\nProcessed DataFrame:")
-print(df.head())
-# %%
+    df["ENVIRONMENT"] = df["ID"].map(instance_to_env)
+    return df
 
-df.to_csv("data/docker_image_sizes.csv", index=False)
+def main() -> None:
+    """Process Docker image data and save results."""
+    external_data_dir = Path("data/external_data")
+    
+    # Read and process Docker output
+    df = pd.read_csv(external_data_dir / "docker_terminal_output.csv")
+    df = process_docker_output(df)
+    
+    # Map environments
+    df = map_environments(df, external_data_dir / "instance_to_env.json")
+    
+    # Reset index and save
+    df = df.reset_index(drop=True)
+    df.to_csv(external_data_dir / "docker_image_sizes.csv", index=False)
+    
+    # Print summary
+    print("\nProcessed DataFrame:")
+    print(df.head())
+    print(f"\nNumber of unique environments: {df['ENVIRONMENT'].nunique()}")
+
+if __name__ == "__main__":
+    main()
 
 
 

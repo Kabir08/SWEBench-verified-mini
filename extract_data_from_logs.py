@@ -65,6 +65,7 @@ def merge_model_pass_rates(df_list: list[pd.DataFrame]) -> pd.DataFrame:
             f'{model_name}_pass_to_pass_pass_rate': pass_to_pass_rate,
             f'{model_name}_fail_to_pass_pass_rate': fail_to_pass_rate
         })
+            
         transformed_dfs.append(transformed_df)
     
     result = transformed_dfs[0]
@@ -79,11 +80,11 @@ def main():
     eval_file_names = [
         "claude_opus3.eval",
         "claude_sonnet3.eval",
-        # "claude_sonnet35.eval",
-        # "claude_sonnet36.eval",
-        # "gpt4o.eval",
-        # "gpt4o-mini.eval",
-        # "gpt4turbo.eval",
+        "claude_sonnet35.eval",
+        "claude_sonnet36.eval",
+        "gpt4o.eval",
+        "gpt4o-mini.eval",
+        "gpt4turbo.eval",
     ]
 
     logs = [list_eval_logs(str(Path("logs") / eval_file_name)) for eval_file_name in eval_file_names]
@@ -96,8 +97,9 @@ def main():
         for sample in log.samples:
             score, pass_to_pass_passed, pass_to_pass_failed, fail_to_pass_passed, fail_to_pass_failed = get_score_and_test_counts_from_sample(sample)
             values = {"id": sample.id, "model": model_name, "score": score, "pass_to_pass_passed": pass_to_pass_passed, "pass_to_pass_failed": pass_to_pass_failed, "fail_to_pass_passed": fail_to_pass_passed, "fail_to_pass_failed": fail_to_pass_failed}
+            
             values_list.append(values)
-
+        
         values_df = pd.DataFrame(values_list)
         log_dfs.append(values_df)
 
@@ -108,8 +110,11 @@ def main():
     merged_df_pass_rate = merge_model_pass_rates(log_dfs)
     print(merged_df_pass_rate)
     merged_df_pass_rate.to_csv("data/merged_df_pass_rate.csv", index=False)
+    print(merged_df_pass_rate.head())
+
 
 if __name__ == "__main__":
     main()
+
 
 # %%
