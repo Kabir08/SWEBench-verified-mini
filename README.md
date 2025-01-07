@@ -6,6 +6,12 @@ If you use the [Inspect implementation](https://github.com/UKGovernmentBEIS/insp
 
 SWEBench-verified-mini is a subset of SWEBench-verified that uses 50 instead of 500 datapoints, requires 5GB instead of 130GB of storage and has approximately the same distribution of performance, test pass rates and difficulty as the original dataset.
 
+We compare between four datasets:
+- Full: all 500 datapoints of SWEBench-verified
+- K-mean representative: 50 datapoints selected by k-means clustering (but no size optimization)
+- Random: 50 random datapoints
+- Size optimized: 50 datapoints selected by Linear Programming to minimize storage size while use k-means to keep the distribution of scores (performance, test pass rates, difficulty) similar to the full dataset.
+
 ![Mean comparison](figures/means_comparison.png)
 ![Difficulty distributions](figures/difficulty_distributions.png)
 
