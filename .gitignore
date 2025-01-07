@@ -170,4 +170,4 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-logs/
+# logs/ in this case we want logs to be tracked

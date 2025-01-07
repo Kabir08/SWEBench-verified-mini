@@ -4,6 +4,11 @@ Link to the dataset on huggingface: [https://huggingface.co/datasets/MariusHobbh
 
 If you use the [Inspect implementation](https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/swe_bench), you can merely switch the `dataset: str = "princeton-nlp/SWE-bench_Verified",` to `dataset: str = "MariusHobbhahn/swe-bench-verified-mini",` in the "swe_bench.py" file.
 
+SWEBench-verified-mini is a subset of SWEBench-verified that uses 50 instead of 500 datapoints, requires 5GB instead of 130GB of storage and has approximately the same distribution of performance, test pass rates and difficulty as the original dataset.
+
+![Mean comparison](figures/means_comparison.png)
+![Difficulty distributions](figures/difficulty_distributions.png)
+
 ## Context
 
 [SWEBench-verified](https://www.swebench.com/) is a great dataset, but it is very large. Thus, I wanted to create a smaller version that is a good proxy for the overall performance of models on the dataset. I call this dataset SWEBench-verified-mini.
@@ -13,7 +18,7 @@ SWEBench-verified-mini is a subset of SWEBench-verified that uses 50 instead of 
 Note that I'm primarily combining work from other people, so I think most of the credit should go to others.
 - [Jiminez et al.](https://arxiv.org/abs/2310.06770) for creating the original dataset.
 - [The OpenAI evals contractor team](https://openai.com/index/introducing-swe-bench-verified/) for taking the dataset and creating SWEBench-verified. 
-- My MATS scholar Govind and Axel for running the full dataset on a decent number of models for a different project so that I can compare the performance of models on the full dataset.
+- My MATS scholars [Govind](https://pimpale.github.io/) and [Axel](https://www.linkedin.com/in/axelhojmark/) for running the full dataset on a decent number of models for a different project so that I can compare the performance of models on the full dataset.
 - [TinyBenchmarks by Polo et al.](https://arxiv.org/abs/2402.14992) for good ideas on how to build tiny versions of bigger benchmarks. I use a different approach than them but was inspired by their work but used their paper for inspiration. Because I use a different approach, I decided to call my dataset 'mini' instead of 'tiny'.
 
 ## How to make SWEBench-verified-mini
@@ -22,17 +27,19 @@ We want to select 50 datapoints of the 500 datapoints in SWEBench-verified such 
 1. The marginal distribution of important scores (performance, test pass rates, difficulty) are similar to the full dataset. 
 2. The overall storage sizes of the dataset is minimized. SWEBench-verified requires 130GB or 260GB of storage (depending on whether you want to create both arm64 and x86_64 versions of the dataset). TODO double check this. This is because you need to create 40 different environments. We want to find a subset of dataset that is a good proxy while using as few environments as possible.
 
+We first run k-means clustering on all datapoints. We then use Linear Programming to select the 50 datapoints such that the storage size is minimized while keeping the distribution of scores (performance, test pass rates, difficulty) similar to the full dataset my making sure that the clusters are adequately represented.  
+
 ## How to run the code
 
-If you want to run the code, you can either run the file run_all.py or run the individual files. In all cases, you have to add the .eval files of previous runs on the full SWEBench-verified dataset to the /logs folder.
+If you want to run the code, you can either run the file `run_all.py` or run the individual files. We provide the `.eval` files of 7 runs on the full SWEBench-verified dataset to the `logs` folder. If you want to run this for your own evals, you can add your own `.eval` files to the `logs` folder. We have not tried very hard to elicit maximal performance from the models. We have instead focused on comparability.
 
-If you want to run the individual files, you have to start with get_docker_image_sizes.py and extract_data_from_logs.py. These are data wrangling scripts.
+If you want to run the individual files, you have to start with `get_docker_image_sizes.py` and `extract_data_from_logs.py`. These are data wrangling scripts.
 
-Then you can run add_metadata_to_data.py and generate_subsets.py.
+Then you can run `add_metadata_to_data.py` and `generate_subsets.py`.
 
-If you want to compare the generated subsets, you can run compare_subsets.py.
+If you want to compare the generated subsets, you can run `compare_subsets.py`.
 
-Finally, you can run make_new_huggingface_dataset.py to create the new dataset.
+Finally, you can run `make_new_huggingface_dataset.py` to create the new dataset.
 
 ## Notes on running SWEBench
 

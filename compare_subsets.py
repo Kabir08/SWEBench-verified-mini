@@ -21,49 +21,68 @@ def prepare_numeric_data(data: pd.DataFrame, replace_difficulty_with_number: boo
     return data.drop(columns=["id", "environment", "size_in_gb"]).fillna(0)
 
 def compare_means(full_data: pd.DataFrame, representative: pd.DataFrame, 
-                 random: pd.DataFrame, optimized: pd.DataFrame) -> None:
+                 random: pd.DataFrame, optimized: pd.DataFrame) -> pd.DataFrame:
     """
-    Compare means of different samples against full dataset using a bar plot.
-    Each metric gets its own group of bars for direct comparison.
+    Compare means of different samples against full dataset using subplots.
+    Metrics are grouped by type (scores, fail_to_pass, pass_to_pass).
     """
     # Calculate means
     means_df = pd.DataFrame({
         "Full Dataset": full_data.mean(numeric_only=True),
-        "Representative": representative.mean(numeric_only=True),
+        "K-means Representative": representative.mean(numeric_only=True),
         "Random": random.mean(numeric_only=True),
-        "Optimized": optimized.mean(numeric_only=True)
+        "Size Optimized": optimized.mean(numeric_only=True)
     })
     
-    # Set up the plot
-    fig, ax = plt.subplots(figsize=(15, 6))
+    # Group metrics by type
+    score_metrics = [col for col in means_df.index if col.endswith('_score')]
+    fail_to_pass_metrics = [col for col in means_df.index if col.endswith('_fail_to_pass_pass_rate')]
+    pass_to_pass_metrics = [col for col in means_df.index if col.endswith('_pass_to_pass_pass_rate')]
     
-    # Number of metrics and samples
-    n_metrics = len(means_df.index)
-    n_samples = len(means_df.columns)
+    def plot_group(ax, metrics, title, show_labels=False):
+        bar_width = 0.2
+        r = np.arange(len(metrics))
+        
+        # Add grid
+        ax.grid(True, axis='y', linestyle='--', alpha=0.7, zorder=0)
+        
+        for idx, (sample_name, means) in enumerate(means_df.items()):
+            position = r + idx * bar_width
+            ax.bar(position, means[metrics], bar_width, label=sample_name, zorder=3)
+        
+        ax.set_ylabel('Mean Value')
+        ax.set_title(title)
+        ax.set_xticks(r + bar_width * (len(means_df.columns)-1) / 2)
+        
+        if show_labels:
+            # For the last row, only show model names
+            labels = [m.split('_')[0] for m in metrics]
+            ax.set_xticklabels(labels, rotation=45, ha='right')
+        else:
+            ax.set_xticklabels([])  # Empty labels for first two rows
+        
+        # Only show legend for the top subplot
+        if ax == ax1:
+            ax.legend(bbox_to_anchor=(1.02, 1), loc='upper left')
     
-    # Set width of bars and positions of bar groups
-    bar_width = 0.2
-    r = np.arange(n_metrics)
+    # Create figure with 3 subplots sharing x axis
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 8), sharex=False)
     
-    # Create bars for each sample type
-    for idx, (sample_name, means) in enumerate(means_df.items()):
-        position = r + idx * bar_width
-        ax.bar(position, means, bar_width, label=sample_name)
+    # Plot each group
+    plot_group(ax1, score_metrics, 'Model Scores', show_labels=False)
+    plot_group(ax2, fail_to_pass_metrics, 'Fail to Pass Rates', show_labels=False)
+    plot_group(ax3, pass_to_pass_metrics, 'Pass to Pass Rates', show_labels=True)
     
-    # Customize the plot
-    ax.set_ylabel('Mean Value')
-    ax.set_title('Comparison of Means Across Samples')
-    ax.set_xticks(r + bar_width * (n_samples-1) / 2)
-    ax.set_xticklabels(means_df.index, rotation=45, ha='right')
-    ax.legend()
-    
-    # Adjust layout to prevent label cutoff
+    # Adjust layout
     plt.tight_layout()
-    plt.show()
+    
+    # Save the figure
+    plt.savefig(Path('figures') / 'means_comparison.png', dpi=300, bbox_inches='tight')
+    plt.close()
 
     return means_df
 
-def compare_difficulty_distributions(samples: dict[str, pd.DataFrame]) -> None:
+def compare_difficulty_distributions(samples: dict[str, pd.DataFrame]) -> pd.DataFrame:
     """Compare and plot difficulty distributions across samples."""
     distributions = {}
     for name, df in samples.items():
@@ -74,12 +93,26 @@ def compare_difficulty_distributions(samples: dict[str, pd.DataFrame]) -> None:
     dist_df = pd.DataFrame(distributions).fillna(0)
     
     # Plot the distributions
-    dist_df.plot(kind='bar', figsize=(10, 6))
+    plt.figure(figsize=(12, 4))
+    ax = dist_df.plot(kind='bar')
+    
+    # Add grid and ensure it's behind the bars
+    ax.grid(True, axis='y', linestyle='--', alpha=0.7, zorder=0)
+    ax.set_axisbelow(True)
+    
+    # Update the zorder of bars by accessing the patches directly
+    for patch in ax.patches:
+        patch.set_zorder(3)
+    
     plt.title('Difficulty Distributions Across Samples')
     plt.xlabel('Difficulty')
     plt.ylabel('Proportion')
     plt.legend(title='Sample')
-    plt.show()
+    plt.tight_layout()
+    
+    # Save the figure
+    plt.savefig(Path('figures') / 'difficulty_distributions.png', dpi=300, bbox_inches='tight')
+    plt.close()
 
     return dist_df
 
@@ -137,6 +170,10 @@ def calculate_environment_sizes(samples: dict[str, pd.DataFrame]) -> None:
 
 def main() -> None:
     """Compare different samples using various metrics."""
+    # Create figures directory if it doesn't exist
+    figures_dir = Path('figures')
+    figures_dir.mkdir(exist_ok=True)
+    
     # Load datasets
     data_dir = Path("data")
     subsets_dir = data_dir / "subsets"
