@@ -108,7 +108,7 @@ def main() -> None:
     print("\nPushing dataset to HuggingFace...")
     filtered_dataset.push_to_hub(
         "MariusHobbhahn/swe-bench-verified-tiny", 
-        private=True
+        #private=True
     )
     print("Done!")
 
