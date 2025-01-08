@@ -7,10 +7,12 @@ If you use the [Inspect implementation](https://github.com/UKGovernmentBEIS/insp
 SWEBench-verified-mini is a subset of SWEBench-verified that uses 50 instead of 500 datapoints, requires 5GB instead of 130GB of storage and has approximately the same distribution of performance, test pass rates and difficulty as the original dataset.
 
 We compare between four datasets:
-- Full: all 500 datapoints of SWEBench-verified
-- K-mean representative: 50 datapoints selected by k-means clustering (but no size optimization)
-- Random: 50 random datapoints
-- Size optimized: 50 datapoints selected by Linear Programming to minimize storage size while use k-means to keep the distribution of scores (performance, test pass rates, difficulty) similar to the full dataset.
+- **Full**: all 500 datapoints of SWEBench-verified
+- **K-mean representative**: 50 datapoints selected by k-means clustering (but no size optimization)
+- **Random**: 50 random datapoints
+- **Size optimized**: 50 datapoints selected by Linear Programming to minimize storage size while use k-means to keep the distribution of scores (performance, test pass rates, difficulty) similar to the full dataset.
+
+We want the numbers of the subsets to be as close as possible to the full dataset, i.e. the orange, green and especially the red bar should be as close as possible to the blue bar.
 
 ![Mean comparison](figures/means_comparison.png)
 ![Difficulty distributions](figures/difficulty_distributions.png)
@@ -19,9 +21,9 @@ We compare between four datasets:
 
 [SWEBench-verified](https://www.swebench.com/) is a great dataset, but it is very large. Thus, I wanted to create a smaller version that is a good proxy for the overall performance of models on the dataset. I call this dataset SWEBench-verified-mini.
 
-SWEBench-verified-mini is a subset of SWEBench-verified that uses 50 instead of 500 datapoints, requires 5GB instead of 130GB of storage and has approximately the same distribution of performance, test pass rates and difficulty as the original dataset.
+SWEBench-verified-mini is a subset of SWEBench-verified that uses 50 instead of 500 datapoints, requires 5GB instead of 130GB of storage and has approximately the same distribution of performance, test pass rates and difficulty as the original dataset (using 7 models for comparison).
 
-Note that I'm primarily combining work from other people, so I think most of the credit should go to others.
+Note that I'm primarily combining work from other people, so most of the credit should go to them:
 - [Jiminez et al.](https://arxiv.org/abs/2310.06770) for creating the original dataset.
 - [The OpenAI evals contractor team](https://openai.com/index/introducing-swe-bench-verified/) for taking the dataset and creating SWEBench-verified. 
 - My MATS scholars [Govind](https://pimpale.github.io/) and [Axel](https://www.linkedin.com/in/axelhojmark/) for running the full dataset on a decent number of models for a different project so that I can compare the performance of models on the full dataset.
@@ -31,13 +33,13 @@ Note that I'm primarily combining work from other people, so I think most of the
 
 We want to select 50 datapoints of the 500 datapoints in SWEBench-verified such that:
 1. The marginal distribution of important scores (performance, test pass rates, difficulty) are similar to the full dataset. 
-2. The overall storage sizes of the dataset is minimized. SWEBench-verified requires 130GB or 260GB of storage (depending on whether you want to create both arm64 and x86_64 versions of the dataset). TODO double check this. This is because you need to create 40 different environments. We want to find a subset of dataset that is a good proxy while using as few environments as possible.
+2. The overall storage sizes of the dataset is minimized. SWEBench-verified requires 130GB or 260GB of storage (depending on whether you want to create both arm64 and x86_64 versions of the docker environments). This is because you need to create 40 different docker environments. We want to find a subset of SWEBench-verified that is a good proxy while using as few docker environments as possible to minimize storage size.
 
-We first run k-means clustering on all datapoints. We then use Linear Programming to select the 50 datapoints such that the storage size is minimized while keeping the distribution of scores (performance, test pass rates, difficulty) similar to the full dataset my making sure that the clusters are adequately represented.  
+We first run k-means clustering on all datapoints. We then use Linear Programming to select the 50 datapoints such that the storage size is minimized while keeping the distribution of scores (performance, test pass rates, difficulty) similar to the full dataset my making sure that the k-meansclusters are proportional to the full dataset.  
 
 ## How to run the code
 
-If you want to run the code, you can either run the file `run_all.py` or run the individual files. We provide the `.eval` files of 7 runs on the full SWEBench-verified dataset to the `logs` folder. If you want to run this for your own evals, you can add your own `.eval` files to the `logs` folder. We have not tried very hard to elicit maximal performance from the models. We have instead focused on comparability.
+If you want to run the code, you can either run the file `run_all.py` or run the individual files. We provide the `.eval` files of 7 runs on the full SWEBench-verified dataset to the `logs` folder. If you want to run this for your own evals, you can add your own `.eval` files to the `logs` folder. We have not tried very hard to elicit maximal performance from the models and instead focused on comparability between runs.
 
 If you want to run the individual files, you have to start with `get_docker_image_sizes.py` and `extract_data_from_logs.py`. These are data wrangling scripts.
 
@@ -46,6 +48,8 @@ Then you can run `add_metadata_to_data.py` and `generate_subsets.py`.
 If you want to compare the generated subsets, you can run `compare_subsets.py`.
 
 Finally, you can run `make_new_huggingface_dataset.py` to create the new dataset.
+
+Note that the code is fairly hacky and has not been optimized for usability.
 
 ## Notes on running SWEBench
 
@@ -63,7 +67,7 @@ Finally, I went into the file `/Users/<user>/miniconda3/envs/<env>/lib/python3.1
 #    else:
 #        arch = "x86_64"
 # and replace with always selecting x86_64 or arm64
-    arch = "x86_64"  # Always use x86_64 regardless of platform; chose x86_64 because that's recommended in the official repo despite having an M2 chip.
+    arch = "x86_64"  # Always use x86_64 regardless of platform; I chose x86_64 because that's recommended in the official repo despite having an M2 chip.
 #    arch = "arm64"  # Always use arm64 regardless of platform
 ```
 

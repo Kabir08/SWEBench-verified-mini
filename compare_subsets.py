@@ -66,7 +66,7 @@ def compare_means(full_data: pd.DataFrame, representative: pd.DataFrame,
             ax.legend(bbox_to_anchor=(1.02, 1), loc='upper left')
     
     # Create figure with 3 subplots sharing x axis
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 8), sharex=False)
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(16, 8), sharex=False)
     
     # Plot each group
     plot_group(ax1, score_metrics, 'Model Scores', show_labels=False)
