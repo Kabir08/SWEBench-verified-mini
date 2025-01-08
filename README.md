@@ -4,7 +4,7 @@ Link to the dataset on huggingface: [https://huggingface.co/datasets/MariusHobbh
 
 If you use the [Inspect implementation](https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/swe_bench), you can merely switch the `dataset: str = "princeton-nlp/SWE-bench_Verified",` to `dataset: str = "MariusHobbhahn/swe-bench-verified-mini",` in the "swe_bench.py" file.
 
-SWEBench-verified-mini is a subset of SWEBench-verified that uses 50 instead of 500 datapoints, requires 5GB instead of 130GB of storage and has approximately the same distribution of performance, test pass rates and difficulty as the original dataset.
+SWEBench-verified-mini is a subset of SWEBench-verified that uses 50 instead of 500 datapoints, requires 5GB instead of 130GB of storage (only using django and sphinx environments) and has approximately the same distribution of performance, test pass rates and difficulty as the original dataset on 16 different models.
 
 We compare between four datasets:
 - **Full**: all 500 datapoints of SWEBench-verified
@@ -21,7 +21,7 @@ We want the numbers of the subsets to be as close as possible to the full datase
 
 [SWEBench-verified](https://www.swebench.com/) is a great dataset, but it is very large. Thus, I wanted to create a smaller version that is a good proxy for the overall performance of models on the dataset. I call this dataset SWEBench-verified-mini.
 
-SWEBench-verified-mini is a subset of SWEBench-verified that uses 50 instead of 500 datapoints, requires 5GB instead of 130GB of storage and has approximately the same distribution of performance, test pass rates and difficulty as the original dataset (using 7 models for comparison).
+SWEBench-verified-mini is a subset of SWEBench-verified that uses 50 instead of 500 datapoints, requires 5GB instead of 130GB of storage and has approximately the same distribution of performance, test pass rates and difficulty as the original dataset (using 16 models for comparison).
 
 Note that I'm primarily combining work from other people, so most of the credit should go to them:
 - [Jiminez et al.](https://arxiv.org/abs/2310.06770) for creating the original dataset.
@@ -39,7 +39,7 @@ We first run k-means clustering on all datapoints. We then use Linear Programmin
 
 ## How to run the code
 
-If you want to run the code, you can either run the file `run_all.py` or run the individual files. We provide the `.eval` files of 7 runs on the full SWEBench-verified dataset to the `logs` folder. If you want to run this for your own evals, you can add your own `.eval` files to the `logs` folder. We have not tried very hard to elicit maximal performance from the models and instead focused on comparability between runs.
+If you want to run the code, you can either run the file `run_all.py` or run the individual files. We provide the `.eval` files of 16 model runs on the full SWEBench-verified dataset to the `logs` folder. If you want to run this for your own evals, you can add your own `.eval` files to the `logs` folder. We have not tried very hard to elicit maximal performance from the models and instead focused on comparability between runs.
 
 If you want to run the individual files, you have to start with `get_docker_image_sizes.py` and `extract_data_from_logs.py`. These are data wrangling scripts.
 
